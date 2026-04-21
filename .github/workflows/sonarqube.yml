@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-and-analyze:
-    # Evita forks (donde secrets vienen vacíos)
+    # No ejecutar en PRs desde forks (no hay secrets)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
@@ -29,13 +29,6 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-
-      - name: Cache Sonar packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       - name: Validate Sonar secrets
         shell: bash
