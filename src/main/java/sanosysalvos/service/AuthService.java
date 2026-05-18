@@ -10,6 +10,7 @@ import sanosysalvos.dto.request.RegisterRequest;
 import sanosysalvos.dto.response.LoginResponse;
 import sanosysalvos.model.Rol;
 import sanosysalvos.model.Status;
+import org.springframework.security.authentication.BadCredentialsException;
 import sanosysalvos.model.Usuario;
 import sanosysalvos.repository.RolRepository;
 import sanosysalvos.repository.StatusRepository;
@@ -37,13 +38,14 @@ public class AuthService implements UserDetailsService {
 
     // --- Registro ---
 
+    @SuppressWarnings("null")
     public LoginResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("El email ya está registrado");
         }
 
-        Rol rolUser = rolRepository.findById(request.getIdRol())
-                .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado con id: " + request.getIdRol()));
+        Rol rolUser = rolRepository.findByDescripcion("USUARIO")
+                .orElseThrow(() -> new IllegalStateException("Rol USUARIO no encontrado en BD"));
 
         Status statusActivo = statusRepository.findByDescripcion("ACTIVO")
                 .orElseThrow(() -> new IllegalStateException("Status ACTIVO no encontrado en BD"));
@@ -58,16 +60,20 @@ public class AuthService implements UserDetailsService {
                 .emailVerificado(false)
                 .build();
 
-        userRepository.save(usuario);
-        String token = jwtService.generateToken(usuario);
+        Usuario savedUser = userRepository.save(usuario);
+        String token = jwtService.generateToken(savedUser);
 
-        return buildResponse(token, usuario);
+        return buildResponse(token, savedUser);
     }
 
     // --- Login ---
 
     public LoginResponse login(LoginRequest request) {
         Usuario usuario = (Usuario) loadUserByUsername(request.getEmail());
+
+        if (!passwordService.matches(request.getContrasena(), usuario.getContrasena())) {
+            throw new BadCredentialsException("Credenciales incorrectas");
+        }
 
         // Actualiza last_login_at en BD
         usuario.setLastLoginAt(java.time.LocalDateTime.now());

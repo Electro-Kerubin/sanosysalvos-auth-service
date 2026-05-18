@@ -29,7 +29,8 @@ public class RefreshToken {
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @Column(name = "revoked")
+    @Builder.Default
+    @Column(name = "revoked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean revoked = false;
 
     @Column(name = "created_at", updatable = false)
@@ -40,4 +41,3 @@ public class RefreshToken {
         createdAt = LocalDateTime.now();
     }
 }
-

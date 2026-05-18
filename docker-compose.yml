@@ -1,66 +1,41 @@
-version: '3.8'
-
 services:
 
-  postgres:
+  # ── Base de datos PostgreSQL ──────────────────────────────────────────────────
+  db:
     image: postgres:16-alpine
-    container_name: sanosysalvos-postgres
+    container_name: auth_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: sanosysalvos
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d sanosysalvos"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d auth_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: sanosysalvos-rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672"     # Puerto AMQP (usado por la aplicación)
-      - "15672:15672"   # Puerto UI de administración → http://localhost:15672
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  report-service:
+  # ── Aplicación Spring Boot ────────────────────────────────────────────────────
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sanosysalvos-report-service
+    container_name: auth_service
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sanosysalvos
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_PASSWORD: guest
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      DB_URL: jdbc:postgresql://db:5432/auth_db
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-c2Fub3N5c2Fsdm9zLXNlY3JldC1rZXktcGFyYS1qd3QtMjAyNg==}
 
 volumes:
   postgres_data:
-  rabbitmq_data:
