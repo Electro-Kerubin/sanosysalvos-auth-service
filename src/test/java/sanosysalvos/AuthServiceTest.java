@@ -31,6 +31,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService - Pruebas Unitarias")
+@SuppressWarnings("null")
 class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
@@ -246,4 +247,3 @@ class AuthServiceTest {
                 .hasMessageContaining("noexiste@test.com");
     }
 }
-

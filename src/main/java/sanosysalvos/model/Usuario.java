@@ -43,6 +43,7 @@ public class Usuario implements UserDetails {
     @Column(name = "contrasena", nullable = false)
     private String contrasena;
 
+    @Builder.Default
     @Column(name = "email_verificado")
     private boolean emailVerificado = false;
 

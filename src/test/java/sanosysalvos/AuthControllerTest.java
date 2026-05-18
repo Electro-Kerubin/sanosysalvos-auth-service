@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthController - Pruebas Unitarias")
+@SuppressWarnings("null")
 class AuthControllerTest {
 
     private MockMvc mockMvc;
@@ -154,4 +155,3 @@ class AuthControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 }
-
