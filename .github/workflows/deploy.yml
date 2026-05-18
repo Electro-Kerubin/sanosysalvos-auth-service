@@ -2,7 +2,7 @@ name: CI/CD - Build, Push and Deploy
 
 on:
   push:
-    branches: [rodrigo-baeza]
+    branches: [dev]
 
 jobs:
   build-and-push:
