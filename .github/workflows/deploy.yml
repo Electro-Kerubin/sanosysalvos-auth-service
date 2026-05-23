@@ -69,6 +69,11 @@ jobs:
               sudo systemctl restart docker
             fi
 
+            # --- Directorio ---
+            sudo mkdir -p /opt/sanosysalvos/infra
+            sudo chown ec2-user:ec2-user /opt/sanosysalvos/infra
+            cd /opt/sanosysalvos/infra
+
             # --- init-db.sql (siempre se sobreescribe) ---
             cat > init-db.sql <<'DBINIT_EOF'
             SELECT 'CREATE DATABASE auth_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'auth_db')\gexec
@@ -76,11 +81,6 @@ jobs:
             SELECT 'CREATE DATABASE sanosysalvos_reports' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sanosysalvos_reports')\gexec
             SELECT 'CREATE DATABASE matching_db' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'matching_db')\gexec
             DBINIT_EOF
-
-            # --- Directorio ---
-            sudo mkdir -p /opt/sanosysalvos/infra
-            sudo chown ec2-user:ec2-user /opt/sanosysalvos/infra
-            cd /opt/sanosysalvos/infra
 
             # --- .env (se sobreescribe en cada deploy para mantener valores actualizados) ---
             cat > .env <<EOF
@@ -248,3 +248,8 @@ jobs:
               default:
                 name: sanosysalvos-network
             COMPOSE_EOF
+
+            # --- Deploy ---
+            sudo docker compose pull auth-service
+            sudo docker compose up -d --no-deps auth-service
+            sudo docker image prune -f
