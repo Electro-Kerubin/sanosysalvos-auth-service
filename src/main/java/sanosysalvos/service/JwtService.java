@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import sanosysalvos.config.JwtConfig;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,7 +62,9 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+        String secret = jwtConfig.getSecret();
+        byte[] decodedSecret = Base64.getDecoder().decode(secret);
+        return Keys.hmacShaKeyFor(decodedSecret);
     }
 }
 
